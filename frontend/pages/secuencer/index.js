@@ -11,28 +11,24 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   addEdge,
+  MarkerType,
 } from "reactflow";
 import "reactflow/dist/style.css";
 
 const initialNodes = [
-  { id: "1", position: { x: 0, y: 0 }, data: { label: "1" } },
-  { id: "2", position: { x: 0, y: 100 }, data: { label: "2" } },
+  { id: "1", position: { x: 0, y: 0 }, data: { label: "Start" } },
 ];
-const initialEdges = [{ id: "e1-2", source: "1", target: "2" }];
+const initialEdges = [
+  // {
+  //   id: "e1-2",
+  //   source: "1",
+  //   target: "2",
+  //   markerEnd: {
+  //     type: MarkerType.ArrowClosed,
+  //   },
+  // },
+];
 const CampaignSecuencer = () => {
-  const [leftItems, setLeftItems] = useState([]);
-  const [centerItems, setCenterItems] = useState([]);
-  const [rightConfig, setRightConfig] = useState([]);
-
-  const handleAddToCenter = (item) => {
-    setCenterItems([...centerItems, item]);
-  };
-
-  const handleRemoveFromCenter = (index) => {
-    const updatedCenterItems = [...centerItems];
-    updatedCenterItems.splice(index, 1);
-    setCenterItems(updatedCenterItems);
-  };
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
@@ -41,28 +37,46 @@ const CampaignSecuencer = () => {
     [setEdges]
   );
 
+  const addTriggerNode = () => {
+    const emailId = `trigger-${nodes.length + 1}`;
+    const emailNode = {
+      id: emailId,
+      position: { x: 100, y: 200 },
+      data: { label: "Trigger" },
+    };
+    setNodes((n) => n.concat(emailNode));
+  };
+
+  const addEmailNode = () => {
+    const emailId = `email-${nodes.length + 1}`;
+    const emailNode = {
+      id: emailId,
+      position: { x: 100, y: 200 },
+      data: { label: "Email" },
+    };
+    setNodes((n) => n.concat(emailNode));
+  };
+
+  const addEndNode = () => {
+    const emailId = `end-${nodes.length + 1}`;
+    const emailNode = {
+      id: emailId,
+      position: { x: 100, y: 200 },
+      data: { label: "End" },
+    };
+    setNodes((n) => n.concat(emailNode));
+  };
+
   return (
     <Layout>
       <div className="flex flex-row w-screen h-[100%]">
         <div className="flex flex-col divide-y-4 mx-2">
           <div className="font-semibold">Triggers</div>
-          <CardAction
-            onClick={() => {
-              console.log("1");
-            }}
-          />
+          <CardAction onClick={addTriggerNode} />
           <div className="font-semibold">Actions</div>
-          <CardAction
-            onClick={() => {
-              console.log("2");
-            }}
-          />
+          <CardAction onClick={addEmailNode} />
           <div className="font-semibold">Exit Criteria Events</div>
-          <CardAction
-            onClick={() => {
-              console.log("3");
-            }}
-          />
+          <CardAction onClick={addEndNode} />
         </div>
         <div className=" bg-gray-100 border-2 w-2/3 mx-2">
           <ReactFlow
@@ -75,7 +89,6 @@ const CampaignSecuencer = () => {
             <Controls />
             <MiniMap />
             <Panel />
-            <NodeToolbar />
             <Background variant="dots" gap={12} size={1} />
           </ReactFlow>
         </div>
