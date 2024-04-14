@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  from_node: one
+  from_node_type: From node
+  to_node: one
+  to_node_type: To node
+  edge_type: MyString
+
+two:
+  from_node: two
+  from_node_type: From node
+  to_node: two
+  to_node_type: To node
+  edge_type: MyString
