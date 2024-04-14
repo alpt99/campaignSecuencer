@@ -3,7 +3,7 @@ class CreateEdges < ActiveRecord::Migration[7.0]
     create_table :edges do |t|
       t.references :from_node, polymorphic: true, null: false
       t.references :to_node, polymorphic: true, null: false
-      t.string :edge_type
+      t.string :edge_type, default: "default"
 
       t.timestamps
     end
