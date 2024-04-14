@@ -1,7 +1,6 @@
 class Edge < ApplicationRecord
-  belongs_to :from_node, polymorphic: true
-  belongs_to :to_node, polymorphic: true
+  belongs_to :from_node, foreign_key: :from_node_id, class_name: 'Node'
+  belongs_to :to_node, foreign_key: :to_node_id, class_name: 'Node'
+  belongs_to :campaign
 
-
-  validates :edge_type, presence: true
 end

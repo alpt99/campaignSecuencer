@@ -19,28 +19,26 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_14_013432) do
   end
 
   create_table "edges", force: :cascade do |t|
-    t.string "from_node_type", null: false
     t.integer "from_node_id", null: false
-    t.string "to_node_type", null: false
     t.integer "to_node_id", null: false
-    t.string "edge_type"
+    t.integer "campaign_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["from_node_type", "from_node_id"], name: "index_edges_on_from_node"
-    t.index ["to_node_type", "to_node_id"], name: "index_edges_on_to_node"
+    t.index ["campaign_id"], name: "index_edges_on_campaign_id"
+    t.index ["from_node_id"], name: "index_edges_on_from_node_id"
+    t.index ["to_node_id"], name: "index_edges_on_to_node_id"
   end
 
   create_table "nodes", force: :cascade do |t|
     t.string "type"
     t.text "description"
-    t.string "campaign_type", null: false
     t.integer "campaign_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "email_content"
     t.text "email_subject"
     t.integer "time_interval"
-    t.index ["campaign_type", "campaign_id"], name: "index_nodes_on_campaign"
+    t.index ["campaign_id"], name: "index_nodes_on_campaign_id"
   end
 
 end
