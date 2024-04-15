@@ -15,8 +15,8 @@ export default memo(({ data, isConnectable }) => {
         <div className="card card-side bg-base-100 shadow-xl w-56 h-16">
           <div className="bg-blue-500 w-[2%]"></div>
           <div className="ml-4">
-            <h2 className=" text-sm font-bold">New movie is released!</h2>
-            <p className="text-xs">Click the button to watch on Jetflix app.</p>
+            <h2 className=" text-sm font-bold">{data.label}</h2>
+            <p className="text-xs">Envia un mail</p>
             <div className="card-actions justify-end">
               {/* <button className="btn btn-primary">Watch</button> */}
             </div>
@@ -27,13 +27,14 @@ export default memo(({ data, isConnectable }) => {
         {/* <div className="bg-base-100 w-[50vh] h-[50vh] border-2 border-black-400">
           <div>Node Toolbar</div>
         </div> */}
-        <div className="flex flex-col justify-start">
-          <button
+        <div className="flex flex-col justify-start text-secondary">
+          Selected
+          {/* <button
             onClick={data.handleEdit}
             className="m-2 px-2 bg-secondary rounded-md"
           >
             Delete
-          </button>
+          </button> */}
         </div>
       </NodeToolbar>
       <Handle

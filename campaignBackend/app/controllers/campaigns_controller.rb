@@ -27,7 +27,7 @@ class CampaignsController < ApplicationController
     if @campaign.save
       node_id_map = create_nodes(nodes_data)
       create_edges(edges_data, node_id_map)
-      starting_node_id = node_id_map[1]
+      starting_node_id = node_id_map["1"]
       @campaign.update(starting_node_id: starting_node_id) if starting_node_id.present?
 
       render json: @campaign, status: :created, location: @campaign
