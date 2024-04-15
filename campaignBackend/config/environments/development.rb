@@ -38,9 +38,23 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
+  config.action_mailer.raise_delivery_errors = true
 
   config.action_mailer.perform_caching = false
+  # config.action_mailer.delivery_method = :mailtrap
+  # config.action_mailer.mailtrap_settings = {
+  #   # api_token: ENV["MAILTRAP_API_TOKEN"],
+  #   api_token: "ff11d6d9faa98a0b0ed8fa7e3d4801e8"
+  # }
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    :user_name => 'api',
+    :password => ENV["MAILER_PASSWORD"],
+    :address => ENV["MAILER_ADDRESS"],
+    :host => ENV["MAILER_HOST"],
+    :port => ENV["MAILER_PORT"],
+    :authentication => :login
+  }
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log

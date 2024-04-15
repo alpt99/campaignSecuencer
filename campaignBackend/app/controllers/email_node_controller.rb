@@ -33,11 +33,6 @@ class EmailNodeController < NodeController
         head :no_content
     end
 
-    def realize_action
-        # Enviar mail
-        # UserMailer.send_email.deliver_now
-    end
-
     private
 
     def set_email_node

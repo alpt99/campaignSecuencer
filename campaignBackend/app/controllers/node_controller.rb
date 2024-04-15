@@ -1,2 +1,3 @@
 class NodeController < ApplicationController
+
 end

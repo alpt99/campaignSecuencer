@@ -10,12 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_04_14_013432) do
+ActiveRecord::Schema[7.0].define(version: 2024_04_15_005551) do
   create_table "campaigns", force: :cascade do |t|
     t.string "title"
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "starting_node_id"
+    t.index ["starting_node_id"], name: "index_campaigns_on_starting_node_id"
   end
 
   create_table "edges", force: :cascade do |t|
@@ -41,4 +43,5 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_14_013432) do
     t.index ["campaign_id"], name: "index_nodes_on_campaign_id"
   end
 
+  add_foreign_key "campaigns", "nodes", column: "starting_node_id"
 end

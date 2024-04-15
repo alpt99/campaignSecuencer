@@ -6,4 +6,5 @@ Rails.application.routes.draw do
   # get "/campaigns", to: "campaigns#index"
   # get "/campaigns/:id", to: "campaigns#show"
   resources :campaigns
+  get "/campaigns/:id/run_campaign", to: "campaigns#run_campaign", as: "run_campaign"
 end

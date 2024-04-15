@@ -1,4 +1,5 @@
 class Campaign < ApplicationRecord
+    belongs_to :starting_node, class_name: "Node", optional: true
     validates :title, presence: true
     validates :description, presence: true, length: { minimum: 10 }
     has_many :nodes, dependent: :destroy
