@@ -36,6 +36,25 @@ class CampaignsController < ApplicationController
     end
   end
 
+  def update
+    @campaign = Campaign.find(params[:id])
+    
+    if campaign_params[:nodes_attributes].present? || campaign_params[:edges_attributes].present?
+      @campaign.nodes.destroy_all
+      node_id_map = create_nodes(nodes_data)
+      create_edges(edges_data, node_id_map)
+      starting_node_id = node_id_map["1"]
+      @campaign.update(starting_node_id: starting_node_id) if starting_node_id.present?
+      render json: @campaign, status: :ok
+    end
+
+    if @campaign.update(campaign_params)
+      render json: @campaign, status: :ok
+    else
+      render json: @campaign.errors, status: :unprocessable_entity
+    end
+  end
+
   def destroy
     @campaign = Campaign.find(params[:id])
     @campaign.destroy

@@ -1,5 +1,5 @@
 // "use client";
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import Layout from "../../components/layout";
 import CardAction from "../../components/cardAction";
 import ReactFlow, {
@@ -15,6 +15,16 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import actionNode from "../../components/actionNode";
 import axios from "axios";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import CampaignConfig from "../../components/campaignConfig";
+import CampaignActionButtons from "../../components/campaignActionButtons";
+import { campaignSchema, emailConfigSchema } from "../../utils/yupSchemas";
+
+const emailContentOptions = [
+  { value: "Normal Products Offers", label: "Normal Products Offers" },
+  { value: "Discounted Products Offers", label: "Discounted Products Offers" },
+];
 
 const nodeTypes = {
   actionNode: actionNode,
@@ -29,6 +39,8 @@ const defaultEdgeOptions = {
 };
 const initialNodes = [];
 const initialEdges = [];
+let position = 0;
+
 const CampaignSecuencer = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -41,6 +53,7 @@ const CampaignSecuencer = () => {
   const [emailSubject, setEmailSubject] = useState("");
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const [nodeData, setNodeData] = useState({});
+  const yPos = useRef(0);
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
@@ -61,16 +74,17 @@ const CampaignSecuencer = () => {
   );
 
   const addEmailNode = () => {
+    yPos.current += 100;
     const emailId = `${nodes.length + 1}`;
     const newActionNode = {
       id: emailId,
-      position: { x: 100, y: 200 },
+      position: { x: 100, y: yPos.current },
       data: {
         label: "EmailNode",
         node_type: "EmailNode",
         description: "Envia un mail",
         email_subject: "Subject",
-        email_content: "Content",
+        email_content: "",
       },
       type: "actionNode",
     };
@@ -79,10 +93,11 @@ const CampaignSecuencer = () => {
   };
 
   const addTimeIntervalNode = () => {
+    yPos.current += 100;
     const emailId = `${nodes.length + 1}`;
     const newActionNode = {
       id: emailId,
-      position: { x: 100, y: 200 },
+      position: { x: 100, y: yPos.current },
       data: { label: "TimeIntervalNode" },
       type: "actionNode",
     };
@@ -116,8 +131,8 @@ const CampaignSecuencer = () => {
       nodes_attributes: nodes_info,
       edges_attributes: edges_info,
     };
-    console.log(campaign);
     try {
+      const validation = await campaignSchema.validate(campaign);
       const response = await axios.post(
         "http://localhost:3000/campaigns",
         campaign,
@@ -125,8 +140,12 @@ const CampaignSecuencer = () => {
       );
       console.log("Campaign created successfully:", response.data);
       setCurrentCampaign(response.data.id);
+      alert("Campaign created successfully");
     } catch (error) {
       console.error("Error creating campaign:", error);
+      if (error.name === "ValidationError") {
+        alert("Campaign Data is required.");
+      }
     }
   };
 
@@ -143,32 +162,39 @@ const CampaignSecuencer = () => {
   };
 
   const editNode = () => {
-    console.log("Node data:", nodeData);
-    const newNodes = nodes.map((node) => {
-      if (node.id === selectedNodeId) {
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            email_content: emailContent,
-            email_subject: emailSubject,
-          },
-        };
-      }
-      return node;
-    });
-    setNodes(newNodes);
+    emailConfigSchema
+      .validate({ emailContent, emailSubject })
+      .then((valid) => {
+        const newNodes = nodes.map((node) => {
+          if (node.id === selectedNodeId) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                email_content: emailContent,
+                email_subject: emailSubject,
+              },
+            };
+          }
+          return node;
+        });
+        setNodes(newNodes);
+        alert("Saved Node Configuration");
+      })
+      .catch((error) => {
+        console.error("Error validating email config:", error);
+        alert("Email data is required.");
+      });
   };
 
   return (
     <Layout>
       <div className="flex flex-row w-screen h-[100%]">
-        <div className="flex flex-col divide-y-4 mx-2">
-          <div className="font-semibold">Email</div>
-          <CardAction onClick={addEmailNode} name={"Email"} />
-          <div className="font-semibold">Time Interval</div>
-          <CardAction onClick={addTimeIntervalNode} name={"Time Interval"} />
-        </div>
+        <CampaignActionButtons
+          addEmailNode={addEmailNode}
+          addTimeIntervalNode={addTimeIntervalNode}
+        />
+
         <div className=" bg-gray-100 border-2 w-1/2 mx-2">
           <ReactFlow
             nodes={nodes}
@@ -191,81 +217,69 @@ const CampaignSecuencer = () => {
           <div className="text-center font-semibold h-full">
             <div className="h-[50%] flex flex-col">
               <div>Node Config {selectedNodeId}</div>
-              <div className="flex-grow">
-                {config === "EmailNode" ? (
-                  <div className="flex flex-col h-full">
-                    <div>Current Email Config</div>
-                    <label className="input input-bordered flex items-center gap-2 m-2">
-                      <input
-                        type="text"
-                        className="grow"
-                        placeholder="Email Subject"
-                        value={emailSubject}
-                        onChange={(e) => {
-                          setEmailSubject(e.target.value);
-                        }}
-                      />
-                    </label>
-                    <textarea
-                      className="textarea textarea-primary m-2 h-[100%]"
-                      placeholder="Email Content"
-                      value={emailContent}
-                      onChange={(e) => {
-                        setEmailContent(e.target.value);
-                      }}
-                    ></textarea>
+              {nodes.length === 0 ? (
+                <div>Start by adding a node</div>
+              ) : (
+                <div className="h-full">
+                  <div className="flex-grow">
+                    {config === "EmailNode" ? (
+                      <div className="flex flex-col h-full">
+                        <div>Current Email Config</div>
+
+                        <label className="input input-bordered flex items-center gap-2 m-2">
+                          <input
+                            type="text"
+                            className="grow"
+                            placeholder="Email Subject"
+                            value={emailSubject}
+                            onChange={(e) => {
+                              setEmailSubject(e.target.value);
+                            }}
+                          />
+                        </label>
+                        <select
+                          value={emailContent}
+                          onChange={(e) => {
+                            setEmailContent(e.target.value);
+                          }}
+                          className="select select-bordered m-2"
+                        >
+                          <option value="">Select Email Content</option>
+                          <option value="Normal Products Offers">
+                            Normal Products Offers
+                          </option>
+                          <option value="Discounted Products Offers">
+                            Discounted Products Offers
+                          </option>
+                        </select>
+                        {/* Error message if needed */}
+                        {emailContent === "" && (
+                          <div className="error-message">
+                            Email content is required.
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div>Configura apretando el nodo</div>
+                    )}
                   </div>
-                ) : (
-                  <div>Configura apretando el nodo</div>
-                )}
-              </div>
-              <button className="bg-primary m-2 p-2" onClick={editNode}>
-                Save Node Config
-              </button>
+                  <button className="btn btn-primary m-2" onClick={editNode}>
+                    Save Node Config
+                  </button>
+                </div>
+              )}
             </div>
             <div className="divider m-1"></div>
             <div>
-              <div>
-                <div>Current Campaign {currentCampaign}</div>
-                <div className="flex flex-col">
-                  <label className="input input-bordered flex items-center gap-2 m-2">
-                    <input
-                      type="text"
-                      className="grow"
-                      placeholder="Campaign Title"
-                      value={campaignTitle}
-                      onChange={(e) => setCampaignTitle(e.target.value)}
-                    />
-                  </label>
-                  <textarea
-                    className="textarea textarea-primary m-2"
-                    placeholder="Description"
-                    value={campaignDescription}
-                    onChange={(e) => setCampaignDescription(e.target.value)}
-                  ></textarea>
-                </div>
-                {currentCampaign !== null ? (
-                  <div>
-                    <div>Current Campaign Id: {currentCampaign}</div>
-                    <button
-                      className="bg-primary m-2 p-2"
-                      onClick={runCampaign}
-                    >
-                      Run Current Campaign
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    className="bg-primary m-2 p-2"
-                    onClick={createCampaign}
-                  >
-                    Create Campaign
-                  </button>
-                )}
-              </div>
-              <div>
-                <div>Other Campaigns</div>
-              </div>
+              <CampaignConfig
+                currentCampaign={currentCampaign}
+                campaignTitle={campaignTitle}
+                campaignDescription={campaignDescription}
+                setCampaignTitle={setCampaignTitle}
+                setCampaignDescription={setCampaignDescription}
+                createCampaign={createCampaign}
+                runCampaign={runCampaign}
+              />
             </div>
           </div>
         </div>
