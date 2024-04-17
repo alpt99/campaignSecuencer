@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_04_15_005551) do
+ActiveRecord::Schema[7.0].define(version: 2024_04_17_063609) do
   create_table "campaigns", force: :cascade do |t|
     t.string "title"
     t.text "description"
@@ -44,4 +44,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_04_15_005551) do
   end
 
   add_foreign_key "campaigns", "nodes", column: "starting_node_id"
+  add_foreign_key "edges", "nodes", column: "from_node_id", on_delete: :cascade
+  add_foreign_key "edges", "nodes", column: "to_node_id", on_delete: :cascade
 end

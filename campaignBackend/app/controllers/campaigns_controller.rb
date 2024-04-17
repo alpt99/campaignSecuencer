@@ -40,7 +40,10 @@ class CampaignsController < ApplicationController
     @campaign = Campaign.find(params[:id])
     
     if campaign_params[:nodes_attributes].present? || campaign_params[:edges_attributes].present?
+      @campaign.edges.destroy_all
+      @campaign.starting_node_id= nil
       @campaign.nodes.destroy_all
+      # @campaign.edges.destroy_all
       node_id_map = create_nodes(nodes_data)
       create_edges(edges_data, node_id_map)
       starting_node_id = node_id_map["1"]

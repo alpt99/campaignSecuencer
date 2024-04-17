@@ -15,8 +15,6 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import actionNode from "../../components/actionNode";
 import axios from "axios";
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
 import CampaignConfig from "../../components/campaignConfig";
 import CampaignActionButtons from "../../components/campaignActionButtons";
 import {
@@ -96,6 +94,7 @@ const CampaignSecuencer = () => {
     };
     setNodes((n) => n.concat(newActionNode));
     setCounter(counter + 1);
+    setConfig("");
   };
 
   const addTimeDelayNode = () => {
@@ -114,22 +113,13 @@ const CampaignSecuencer = () => {
     };
     setNodes((n) => n.concat(newActionNode));
     setCounter(counter + 1);
+    setConfig("");
   };
 
   const createCampaign = async () => {
     if (currentCampaign !== null) {
       return;
     }
-    // const nodes_info = nodes.map((node) => {
-    //   console.log(node);
-    //   return {
-    //     node_id: node.id,
-    //     node_type: node.data.node_type,
-    //     node_description: node.data.description,
-    //     email_subject: node.data.email_subject,
-    //     email_content: node.data.email_content,
-    //   };
-    // });
     const nodes_info = nodes.map((node) => {
       let info = {
         node_id: node.id,
@@ -152,7 +142,6 @@ const CampaignSecuencer = () => {
 
       return info;
     });
-    console.log("Nodes info:", nodes_info);
     const edges_info = edges.map((edge) => {
       return {
         srcNode: edge.source,
@@ -180,6 +169,7 @@ const CampaignSecuencer = () => {
       if (error.name === "ValidationError") {
         alert("Campaign Data is required.");
       }
+      alert("Error creating campaign");
     }
   };
 
@@ -276,9 +266,9 @@ const CampaignSecuencer = () => {
         </div>
         <div className="border-2 border-base-900 flex-grow mx-2">
           <div className="text-center font-semibold h-full">
-            <div className="h-[50%] flex flex-col">
-              <div>Node Config {selectedNodeId}</div>
-              {nodes.length === 0 ? (
+            <div className="h-[40%] flex flex-col">
+              <div>Node Configuration {selectedNodeId}</div>
+              {nodes.length === 0 || config === "" ? (
                 <div>Start by adding a node</div>
               ) : (
                 <div className="h-full">

@@ -1,1 +1,3 @@
-This is a starter template for [Learn Next.js](https://nextjs.org/learn).
+This is the frontend of the secuencer app.
+
+To run the frontend just run: npm run dev
