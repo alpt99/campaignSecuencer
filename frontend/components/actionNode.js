@@ -13,10 +13,10 @@ export default memo(({ data, isConnectable }) => {
       />
       <div>
         <div className="card card-side bg-base-100 shadow-xl w-56 h-16">
-          <div className="bg-blue-500 w-[2%]"></div>
+          <div className="bg-accent w-[2%] rounded-lg"></div>
           <div className="ml-4">
             <h2 className=" text-sm font-bold">{data.label}</h2>
-            <p className="text-xs">Envia un mail</p>
+            <p className="text-xs">{data.description}</p>
             <div className="card-actions justify-end">
               {/* <button className="btn btn-primary">Watch</button> */}
             </div>

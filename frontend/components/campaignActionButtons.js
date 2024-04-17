@@ -8,9 +8,9 @@ export default function CampaignActionButtons({
   return (
     <div className="flex flex-col divide-y-4 mx-2">
       <div className="h-2/3">
-        <div className="font-semibold">Actions</div>
+        <div className="font-semibold mb-2">Email</div>
         <CardAction onClick={addEmailNode} name={"Email"} />
-        <div className="font-semibold">Time Interval</div>
+        <div className="font-semibold mb-2">Time Interval</div>
         <CardAction onClick={addTimeDelayNode} name={"Time Interval"} />
       </div>
       <div className="flex-grow">

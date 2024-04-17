@@ -1,4 +1,5 @@
 import * as React from "react";
+import Link from "next/link";
 
 export default function CampaignConfig({
   setCampaignTitle,
@@ -8,7 +9,6 @@ export default function CampaignConfig({
   currentCampaign,
   createCampaign,
   runCampaign,
-  name,
 }) {
   return (
     <div>
@@ -32,7 +32,6 @@ export default function CampaignConfig({
       </div>
       {currentCampaign !== null ? (
         <div>
-          <div>Current Campaign Id: {currentCampaign}</div>
           <button className="btn btn-primary m-2" onClick={runCampaign}>
             Run Current Campaign
           </button>
@@ -42,6 +41,13 @@ export default function CampaignConfig({
           Create Campaign
         </button>
       )}
+      <a
+        href={"/secuencer"}
+        className="btn btn-primary m-2"
+        onClick={() => window.location.reload()}
+      >
+        Start a New Campaign From Scratch
+      </a>
     </div>
   );
 }
