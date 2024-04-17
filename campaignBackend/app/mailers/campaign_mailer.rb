@@ -2,7 +2,7 @@ class CampaignMailer < ApplicationMailer
 
     def standard_email(email_content,email_subject)
         # @user = "params[:user]"
-        @user = "alpt@uc.cl"
+        @user = ENV['EMAIL_USER']
         if email_content=="Discounted Products Offers"
             @content = "We have some discounted products for you. Check them out!"
         else

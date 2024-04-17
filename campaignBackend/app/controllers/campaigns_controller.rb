@@ -64,6 +64,7 @@ class CampaignsController < ApplicationController
   def run_campaign
     @campaign = Campaign.find(params[:id])
     bfs_traversal()
+    render json: @campaign, status: :ok
     # mailer = CampaignMailer.standard_email
     # mailer.deliver_now
   end
@@ -72,7 +73,7 @@ class CampaignsController < ApplicationController
   private
     def campaign_params
       params.require(:campaign).permit(:title, :description, 
-      nodes_attributes: [:node_type, :node_description, :node_id, :email_content, :email_subject], 
+      nodes_attributes: [:node_type, :node_description, :node_id, :email_content, :email_subject, :time_interval], 
       edges_attributes: [:srcNode, :destNode])
     end
 
@@ -83,14 +84,13 @@ class CampaignsController < ApplicationController
       nodes_data.each do |node_data|
         node = case node_data[:node_type]
                when "EmailNode"
-                puts "Entra a email node"
                  EmailNode.new(description: node_data[:node_description], email_content: node_data[:email_content], email_subject: node_data[:email_subject], campaign_id: @campaign.id)
                 when "TimeDelayNode"
                  TimeDelayNode.new(description: node_data[:node_description], time_interval: node_data[:time_interval], campaign_id: @campaign.id)
                end
-        puts "Node: #{node.inspect}"
         node.campaign = @campaign
         if node.save
+          puts "Node: #{node.inspect}"
           node_id_map[node_data[:node_id]] = node.id
         else
           # Handle validation errors if needed
@@ -125,29 +125,32 @@ class CampaignsController < ApplicationController
       end
     end
 
-    # Breadth-first search (BFS) traversal
     def bfs_traversal()
       puts "current campaign: #{@campaign}"
       root = Node.find(@campaign.starting_node_id)
       return if root.nil?
 
+      current_time_wait = 0
       queue = [root]
-      visited = Set.new  # Using a set for faster membership checks
+      visited = Set.new  
 
       while !queue.empty?
         node = queue.shift
-        next if visited.include?(node.id)  # Check if node has been visited
+        next if visited.include?(node.id)  
 
         visited << node.id
         puts "Visiting Node #{node.id}"
-        node.realize_action
+        if node.is_a?(TimeDelayNode)
+          current_time_wait += node.time_interval
+        else
+          node.realize_action(current_time_wait)
+        end
 
-        # Fetch all outgoing edges from the current node
         edges = Edge.where(from_node_id: node.id)
 
         edges.each do |edge|
           child = Node.find(edge.to_node_id)
-          next if visited.include?(child.id)  # Skip if child has been visited
+          next if visited.include?(child.id)  
 
           queue << child
         end

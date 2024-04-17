@@ -43,3 +43,10 @@ export const emailConfigSchema = Yup.object().shape({
     .min(1, "Email subject is too short"),
   emailContent: Yup.string().required("Email content is required"),
 });
+
+export const timeIntervalSchema = Yup.object().shape({
+  timeInterval: Yup.number()
+    .required("Time interval is required")
+    .min(1)
+    .max(10000000000000),
+});

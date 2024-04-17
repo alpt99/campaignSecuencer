@@ -19,7 +19,11 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import CampaignConfig from "../../components/campaignConfig";
 import CampaignActionButtons from "../../components/campaignActionButtons";
-import { campaignSchema, emailConfigSchema } from "../../utils/yupSchemas";
+import {
+  campaignSchema,
+  emailConfigSchema,
+  timeIntervalSchema,
+} from "../../utils/yupSchemas";
 
 const emailContentOptions = [
   { value: "Normal Products Offers", label: "Normal Products Offers" },
@@ -52,6 +56,7 @@ const CampaignSecuencer = () => {
   const [emailContent, setEmailContent] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [selectedNodeId, setSelectedNodeId] = useState(null);
+  const [timeInterval, setTimeInterval] = useState(1);
   const [nodeData, setNodeData] = useState({});
   const yPos = useRef(0);
 
@@ -69,6 +74,7 @@ const CampaignSecuencer = () => {
       setNodeData(node.data);
       setEmailContent(node.data.email_content);
       setEmailSubject(node.data.email_subject);
+      setTimeInterval(node.data.time_interval);
     },
     [setConfig, selectedNodeId]
   );
@@ -92,13 +98,18 @@ const CampaignSecuencer = () => {
     setCounter(counter + 1);
   };
 
-  const addTimeIntervalNode = () => {
+  const addTimeDelayNode = () => {
     yPos.current += 100;
     const emailId = `${nodes.length + 1}`;
     const newActionNode = {
       id: emailId,
       position: { x: 100, y: yPos.current },
-      data: { label: "TimeIntervalNode" },
+      data: {
+        label: "TimeDelayNode",
+        node_type: "TimeDelayNode",
+        description: "Espera un tiempo",
+        time_interval: 1,
+      },
       type: "actionNode",
     };
     setNodes((n) => n.concat(newActionNode));
@@ -109,16 +120,39 @@ const CampaignSecuencer = () => {
     if (currentCampaign !== null) {
       return;
     }
+    // const nodes_info = nodes.map((node) => {
+    //   console.log(node);
+    //   return {
+    //     node_id: node.id,
+    //     node_type: node.data.node_type,
+    //     node_description: node.data.description,
+    //     email_subject: node.data.email_subject,
+    //     email_content: node.data.email_content,
+    //   };
+    // });
     const nodes_info = nodes.map((node) => {
-      console.log(node);
-      return {
+      let info = {
         node_id: node.id,
         node_type: node.data.node_type,
         node_description: node.data.description,
-        email_subject: node.data.email_subject,
-        email_content: node.data.email_content,
       };
+
+      if (node.data.label === "TimeDelayNode") {
+        info = {
+          ...info,
+          time_interval: parseInt(node.data.time_interval, 10),
+        };
+      } else if (node.data.label === "EmailNode") {
+        info = {
+          ...info,
+          email_subject: node.data.email_subject,
+          email_content: node.data.email_content,
+        };
+      }
+
+      return info;
     });
+    console.log("Nodes info:", nodes_info);
     const edges_info = edges.map((edge) => {
       return {
         srcNode: edge.source,
@@ -154,37 +188,64 @@ const CampaignSecuencer = () => {
       const response = await axios.get(
         `http://localhost:3000/campaigns/${currentCampaign}/run_campaign`
       );
-      console.log("Campaign created successfully:", response.data);
+      console.log("Campaign runned successfully:", response.data);
+      alert("Campaign runned successfully");
       // setCurrentCampaign(response.data.);
     } catch (error) {
-      console.error("Error creating campaign:", error);
+      console.error("Error running campaign:", error);
+      alert("Error running campaign");
     }
   };
 
   const editNode = () => {
-    emailConfigSchema
-      .validate({ emailContent, emailSubject })
-      .then((valid) => {
-        const newNodes = nodes.map((node) => {
-          if (node.id === selectedNodeId) {
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                email_content: emailContent,
-                email_subject: emailSubject,
-              },
-            };
-          }
-          return node;
+    if (config === "EmailNode") {
+      emailConfigSchema
+        .validate({ emailContent, emailSubject })
+        .then((valid) => {
+          const newNodes = nodes.map((node) => {
+            if (node.id === selectedNodeId) {
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  email_content: emailContent,
+                  email_subject: emailSubject,
+                },
+              };
+            }
+            return node;
+          });
+          setNodes(newNodes);
+          alert("Saved Node Configuration");
+        })
+        .catch((error) => {
+          console.error("Error validating email config:", error);
+          alert("Email data is required.");
         });
-        setNodes(newNodes);
-        alert("Saved Node Configuration");
-      })
-      .catch((error) => {
-        console.error("Error validating email config:", error);
-        alert("Email data is required.");
-      });
+    } else if (config === "TimeDelayNode") {
+      timeIntervalSchema
+        .validate({ timeInterval })
+        .then((valid) => {
+          const newNodes = nodes.map((node) => {
+            if (node.id === selectedNodeId) {
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  time_interval: timeInterval,
+                },
+              };
+            }
+            return node;
+          });
+          setNodes(newNodes);
+          alert("Saved Node Configuration");
+        })
+        .catch((error) => {
+          console.error("Error validating time interval:", error);
+          alert("Time interval is required.");
+        });
+    }
   };
 
   return (
@@ -192,7 +253,7 @@ const CampaignSecuencer = () => {
       <div className="flex flex-row w-screen h-[100%]">
         <CampaignActionButtons
           addEmailNode={addEmailNode}
-          addTimeIntervalNode={addTimeIntervalNode}
+          addTimeDelayNode={addTimeDelayNode}
         />
 
         <div className=" bg-gray-100 border-2 w-1/2 mx-2">
@@ -260,7 +321,26 @@ const CampaignSecuencer = () => {
                         )}
                       </div>
                     ) : (
-                      <div>Configura apretando el nodo</div>
+                      <div className="flex flex-col h-full">
+                        <div>Current Time Interval Node Configuration</div>
+                        <label className="input input-bordered flex items-center gap-2 m-2">
+                          <input
+                            type="number"
+                            className="grow"
+                            placeholder="Time Interval"
+                            value={timeInterval}
+                            onChange={(e) => {
+                              setTimeInterval(e.target.value);
+                            }}
+                          />
+                        </label>
+                        {/* Error message if needed */}
+                        {nodeData.time_interval === "" && (
+                          <div className="error-message">
+                            Time interval is required.
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                   <button className="btn btn-primary m-2" onClick={editNode}>
